@@ -1,15 +1,19 @@
+import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from pydantic import BaseModel, HttpUrl
+
 
 class WebhookCreate(BaseModel):
     user_id: str
     event_type: str
     url: HttpUrl
 
+
 class WebhookUpdate(BaseModel):
     url: HttpUrl | None = None
     status: Literal["active", "inactive"] | None = None
+
 
 class WebhookOut(BaseModel):
     model_config = {"from_attributes": True}
@@ -22,5 +26,17 @@ class WebhookOut(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class WebhookCreated(WebhookOut):
     secret: str
+
+
+class EventCreate(BaseModel):
+    user_id: str
+    event_type: str
+    payload: dict[str, Any]
+
+
+class EventAccepted(BaseModel):
+    event_id: uuid.UUID
+    deliveries_created: int
