@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from delivery import send_delivery
 
 import models
 import schemas
@@ -28,7 +29,14 @@ def publish_event(body: schemas.EventCreate, db: Session = Depends(get_db)):
     ).all()
 
     for webhook in webhooks:
-        db.add(models.Delivery(event_id=event.id, webhook_id=webhook.id))
-
+        deliveries = [
+        models.Delivery(event_id=event.id, webhook_id=webhook.id)
+        for webhook in webhooks
+    ]
+    db.add_all(deliveries)
     db.commit()
-    return {"event_id": event.id, "deliveries_created": len(webhooks)}
+
+    for delivery in deliveries:
+        send_delivery(db, delivery)
+
+    return {"event_id": event.id, "deliveries_created": len(deliveries)}
