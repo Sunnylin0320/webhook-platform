@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from delivery import send_delivery
+from tasks import deliver
 
 import models
 import schemas
@@ -37,6 +37,6 @@ def publish_event(body: schemas.EventCreate, db: Session = Depends(get_db)):
     db.commit()
 
     for delivery in deliveries:
-        send_delivery(db, delivery)
+        deliver.delay(delivery.id)
 
     return {"event_id": event.id, "deliveries_created": len(deliveries)}
