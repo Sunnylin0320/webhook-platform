@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
-import models
-from dashboard import router as dashboard_router
-from database import Base, engine
-from events import router as event_router
-from webhooks import router as webhook_router
+from app import models
+from app.api.dashboard import router as dashboard_router
+from app.api.events import router as event_router
+from app.api.webhooks import router as webhook_router
+from app.database import Base, engine
 
 Base.metadata.create_all(bind=engine)
 

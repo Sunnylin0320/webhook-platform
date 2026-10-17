@@ -4,19 +4,21 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from pathlib import Path
 
-import models
-from database import get_db
+from app import models
+from app.database import get_db
 
 router = APIRouter(tags=["dashboard"])
 
 redis_client = redis.Redis.from_url("redis://localhost:6379/0")
 RECEIVER_LOG_URL = "http://localhost:9000/received"
+INDEX_HTML = Path(__file__).resolve().parent.parent / "static" / "index.html"
 
 
 @router.get("/", include_in_schema=False)
 def dashboard_page():
-    return FileResponse("static/index.html")
+    return FileResponse(INDEX_HTML)
 
 
 def get_queue_length() -> int | None:

@@ -1,10 +1,10 @@
-import models
-from celery_app import app
-from database import SessionLocal
-from delivery import send_delivery
+from app import models
+from app.database import SessionLocal
+from app.worker.celery_app import celery_app
+from app.worker.delivery import send_delivery
 
 
-@app.task
+@celery_app.task
 def deliver(delivery_id: int) -> None:
     db = SessionLocal()
     try:

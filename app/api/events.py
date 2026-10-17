@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from tasks import deliver
 
-import models
-import schemas
-from database import get_db
+from app import models, schemas
+from app.database import get_db
+from app.worker.tasks import deliver
 
 router = APIRouter(prefix="/v1/events", tags=["events"])
 

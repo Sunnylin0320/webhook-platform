@@ -1,7 +1,7 @@
 import httpx
 from sqlalchemy.orm import Session
 
-import models
+from app import models 
 
 
 def build_payload(event: models.Event) -> dict:

@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import String, DateTime, Index, ForeignKey, Text, Uuid, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
-from database import Base
+from app.database import Base
 
 class Webhook(Base):
     __tablename__ = "webhooks"

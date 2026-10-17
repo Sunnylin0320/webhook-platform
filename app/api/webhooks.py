@@ -2,9 +2,8 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import models
-import schemas
-from database import get_db
+from app import models, schemas
+from app.database import get_db
 
 router = APIRouter(prefix="/v1/webhook", tags=["webhooks"])
 
