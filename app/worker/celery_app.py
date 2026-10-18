@@ -6,3 +6,10 @@ celery_app = Celery(
     include=["app.worker.tasks"],
 )
 celery_app.conf.task_acks_late = True
+
+celery_app.conf.beat_schedule = {
+    "requeue-due-retries": {
+        "task": "app.worker.tasks.requeue_due_retries",
+        "schedule": 10.0,
+    },
+}

@@ -1,7 +1,15 @@
-import httpx
-from sqlalchemy.orm import Session
+from dataclasses import dataclass
 
-from app import models 
+import httpx
+
+from app import models
+
+
+@dataclass
+class SendResult:
+    ok: bool
+    retryable: bool
+    error: str | None = None
 
 
 def build_payload(event: models.Event) -> dict:
@@ -12,21 +20,21 @@ def build_payload(event: models.Event) -> dict:
         "data": event.payload,
     }
 
-def send_delivery(db: Session, delivery: models.Delivery) -> None:
-    webhook = db.get(models.Webhook, delivery.webhook_id)
-    event = db.get(models.Event, delivery.event_id)
-    delivery.attempts += 1
 
+def is_retryable_status(status_code: int) -> bool:
+    return status_code >= 500 or status_code in (408, 429)
+
+
+def send_delivery(webhook: models.Webhook, event: models.Event) -> SendResult:
     try:
         response = httpx.post(webhook.url, json=build_payload(event), timeout=5.0)
-        if response.is_success:
-            delivery.status = "succeeded"
-            delivery.last_error = None
-        else:
-            delivery.status = "failed"
-            delivery.last_error = f"HTTP {response.status_code}"
     except httpx.RequestError as exc:
-        delivery.status = "failed"
-        delivery.last_error = f"{type(exc).__name__}: {exc}"[:500]
+        return SendResult(ok=False, retryable=True, error=f"{type(exc).__name__}: {exc}"[:500])
 
-    db.commit()
+    if response.is_success:
+        return SendResult(ok=True, retryable=False)
+    return SendResult(
+        ok=False,
+        retryable=is_retryable_status(response.status_code),
+        error=f"HTTP {response.status_code}",
+    )
