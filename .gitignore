@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-my-commands.md
+my-commands.md.pytest_cache/

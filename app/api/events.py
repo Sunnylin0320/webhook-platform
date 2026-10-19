@@ -27,10 +27,10 @@ def publish_event(body: schemas.EventCreate, db: Session = Depends(get_db)):
         )
     ).all()
 
-    for webhook in webhooks:
-        deliveries = [
-        models.Delivery(event_id=event.id, webhook_id=webhook.id)
-        for webhook in webhooks
+
+    deliveries = [
+    models.Delivery(event_id=event.id, webhook_id=webhook.id)
+    for webhook in webhooks
     ]
     db.add_all(deliveries)
     db.commit()
