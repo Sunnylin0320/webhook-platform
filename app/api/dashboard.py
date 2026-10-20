@@ -1,19 +1,23 @@
+import os
+from pathlib import Path
+
 import httpx
 import redis
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from pathlib import Path
 
 from app import models
 from app.database import get_db
 
 router = APIRouter(tags=["dashboard"])
 
-redis_client = redis.Redis.from_url("redis://localhost:6379/0")
-RECEIVER_LOG_URL = "http://localhost:9000/received"
 INDEX_HTML = Path(__file__).resolve().parent.parent / "static" / "index.html"
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+RECEIVER_BASE_URL = os.environ.get("RECEIVER_BASE_URL", "http://localhost:9000")
+
+redis_client = redis.Redis.from_url(REDIS_URL)
 
 
 @router.get("/", include_in_schema=False)
@@ -30,7 +34,7 @@ def get_queue_length() -> int | None:
 
 def get_receiver_log() -> list | None:
     try:
-        return httpx.get(RECEIVER_LOG_URL, timeout=0.5).json()
+        return httpx.get(f"{RECEIVER_BASE_URL}/received", timeout=0.5).json()
     except httpx.HTTPError:
         return None
 
@@ -48,6 +52,7 @@ def dashboard_data(db: Session = Depends(get_db)):
     webhook_urls = {w.id: w.url for w in webhooks}
 
     return {
+        "receiver_hooks_url": f"{RECEIVER_BASE_URL}/hooks",
         "queue_length": get_queue_length(),
         "receiver_log": get_receiver_log(),
         "webhooks": [
@@ -70,7 +75,7 @@ def dashboard_data(db: Session = Depends(get_db)):
                 "status": d.status,
                 "attempts": d.attempts,
                 "last_error": d.last_error,
-                "next_retry_at": getattr(d, "next_retry_at", None),
+                "next_retry_at": d.next_retry_at,
             }
             for d in deliveries
         ],

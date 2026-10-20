@@ -500,13 +500,11 @@
             <label for="w-url">Endpoint URL</label>
             <input id="w-url" value="http://localhost:9000/hooks" required>
             <div class="chips" aria-label="Example endpoints">
-              <button type="button" class="chip" data-url="http://localhost:9000/hooks">Healthy</button>
-              <button type="button" class="chip" data-url="http://localhost:9000/hooks?fail_rate=0.5">Fails 50%</button>
-              <button type="button" class="chip" data-url="http://localhost:9000/hooks?fail_rate=1">Always
-                fails</button>
-              <button type="button" class="chip"
-                data-url="http://localhost:9000/hooks?fail_rate=1&fail_status=400">Returns 400</button>
-              <button type="button" class="chip" data-url="http://localhost:9000/hooks?delay=3">3s slow</button>
+              <button type="button" class="chip" data-query="">Healthy</button>
+              <button type="button" class="chip" data-query="?fail_rate=0.5">Fails 50%</button>
+              <button type="button" class="chip" data-query="?fail_rate=1">Always fails</button>
+              <button type="button" class="chip" data-query="?fail_rate=1&fail_status=400">Returns 400</button>
+              <button type="button" class="chip" data-query="?delay=3">3s slow</button>
             </div>
             <button class="primary" type="submit">Register endpoint</button>
           </form>
@@ -627,9 +625,18 @@
       el.innerHTML = html;
     }
 
+    let hooksUrl = "http://localhost:9000/hooks";
+
     document.querySelectorAll(".chip").forEach((chip) => {
-      chip.addEventListener("click", () => { $("#w-url").value = chip.dataset.url; });
+      chip.addEventListener("click", () => { $("#w-url").value = hooksUrl + chip.dataset.query; });
     });
+
+    function useReceiverUrl(url) {
+      if (!url || url === hooksUrl) return;
+      const input = $("#w-url");
+      if (input.value.startsWith(hooksUrl)) input.value = url + input.value.slice(hooksUrl.length);
+      hooksUrl = url;
+    }
 
     $("#form-webhook").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -682,6 +689,7 @@
     let queueStuck = 0;
 
     function render(data) {
+      useReceiverUrl(data.receiver_hooks_url);
       const ds = data.deliveries;
       const count = (s) => ds.filter((d) => d.status === s).length;
       $("#n-pending").textContent = count("pending");

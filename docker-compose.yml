@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: webhook
+      POSTGRES_PASSWORD: webhook
+      POSTGRES_DB: webhook
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webhook"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://webhook:webhook@db:5432/webhook
+      REDIS_URL: redis://redis:6379/0
+      RECEIVER_BASE_URL: http://receiver:9000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A app.worker.celery_app:celery_app worker -B -P threads -c 8 --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+psycopg://webhook:webhook@db:5432/webhook
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  receiver:
+    build: .
+    command: uvicorn tools.receiver:app --host 0.0.0.0 --port 9000
+    ports:
+      - "9000:9000"
+    environment:
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+
+volumes:
+  pgdata:
