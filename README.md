@@ -4,7 +4,6 @@ A multi-tenant webhook platform built with **FastAPI**, **PostgreSQL**, **Celery
 
 It follows the same model as Stripe and GitHub webhooks, and is based on a system design exercise for a large-scale SaaS webhook service with at-least-once delivery.
 
-![Webhook Console](docs/dashboard.png)
 
 ## Features
 
@@ -22,10 +21,10 @@ It follows the same model as Stripe and GitHub webhooks, and is based on a syste
 - [x] Event publishing with subscriber fan-out
 - [x] Background delivery with Celery and Redis
 - [x] Live dashboard and fake customer endpoint
-- [ ] Exponential backoff with jitter, scheduled retries for up to 3 days, and a dead letter queue
-- [ ] HMAC-SHA256 payload signing
-- [ ] Test suite with pytest and CI with GitHub Actions
-- [ ] One-command startup with Docker Compose
+- [x] Exponential backoff with jitter, scheduled retries for up to 3 days, and a dead letter queue
+- [x] HMAC-SHA256 payload signing
+- [x] Test suite with pytest and CI with GitHub Actions
+- [x] One-command startup with Docker Compose
 
 ## Architecture
 
